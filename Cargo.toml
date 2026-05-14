@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "crates/loz_cli",
+    "crates/loz_lexer",
+    "crates/loz_ast",
+    "crates/loz_parser",
+    "crates/loz_semantic",
+    "crates/loz_codegen",
+]
+resolver = "3"
+

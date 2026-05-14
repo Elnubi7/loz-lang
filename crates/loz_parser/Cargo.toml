@@ -1,0 +1,8 @@
+[package]
+name = "loz_parser"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+loz_ast = { path = "../loz_ast" }
+loz_lexer = { path = "../loz_lexer" }

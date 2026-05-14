@@ -1,0 +1,11 @@
+[package]
+name = "loz_semantic"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+loz_ast = { path = "../loz_ast" }
+
+[dev-dependencies]
+loz_lexer = { path = "../loz_lexer" }
+loz_parser = { path = "../loz_parser" }

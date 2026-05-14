@@ -1,0 +1,13 @@
+[package]
+name = "loz_codegen"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+inkwell = { version = "0.9.0", features = ["llvm18-1-prefer-dynamic"] }
+loz_ast = { path = "../loz_ast" }
+
+[dev-dependencies]
+loz_lexer = { path = "../loz_lexer" }
+loz_parser = { path = "../loz_parser" }
+loz_semantic = { path = "../loz_semantic" }
