@@ -2622,29 +2622,41 @@ fn build_clang_link_command<'a>(
     runtime_link: &'a RuntimeLinkArtifacts,
     executable_path: &'a Path,
 ) -> Command {
-    let mut command = Command::new(clang_path);
-    command.arg(object_path).arg(&runtime_link.library_path);
+    let mut args = vec![
+        object_path.to_string_lossy().into_owned(),
+        runtime_link.library_path.to_string_lossy().into_owned(),
+    ];
 
     if platform.os == PlatformOs::Linux {
-        command
-            .arg("-no-pie")
-            .arg("-L/usr/lib/x86_64-linux-gnu")
-            .arg("-L/lib/x86_64-linux-gnu");
+        args.extend([
+            "-no-pie".to_string(),
+            "-L/usr/lib/x86_64-linux-gnu".to_string(),
+            "-L/lib/x86_64-linux-gnu".to_string(),
+        ]);
     }
 
-    command.arg("-o").arg(executable_path);
+    args.push("-o".to_string());
+    args.push(executable_path.to_string_lossy().into_owned());
+    args.extend(runtime_link.native_static_libs.iter().cloned());
 
-    for native_library in runtime_link
-        .native_static_libs
-        .iter()
-        .filter(|native_library| {
-            !(platform.os == PlatformOs::Linux && native_library.as_str() == "-lc")
-        })
-    {
-        command.arg(native_library);
-    }
+    sanitize_clang_link_args(platform, &mut args);
+    debug_assert!(
+        !args.iter().any(|arg| should_skip_link_arg(platform, arg)),
+        "linux clang link args must not contain explicit -lc: {args:?}"
+    );
+
+    let mut command = Command::new(clang_path);
+    command.args(&args);
 
     command
+}
+
+fn sanitize_clang_link_args(platform: BuildPlatform, args: &mut Vec<String>) {
+    args.retain(|arg| !should_skip_link_arg(platform, arg));
+}
+
+fn should_skip_link_arg(platform: BuildPlatform, arg: &str) -> bool {
+    platform.os == PlatformOs::Linux && arg.trim() == "-lc"
 }
 
 fn prepare_loz_runtime_link_artifacts(cargo_path: &Path) -> Result<RuntimeLinkArtifacts, CliError> {
@@ -3510,7 +3522,15 @@ text_utils = { path = "./packages/text_utils" }
     fn build_link_command_is_platform_aware() {
         let runtime_link = RuntimeLinkArtifacts {
             library_path: PathBuf::from("libloz_runtime.a"),
-            native_static_libs: vec!["-lm".to_string(), "-lc".to_string()],
+            native_static_libs: vec![
+                "-lgcc_s".to_string(),
+                "-lutil".to_string(),
+                "-lrt".to_string(),
+                "-lpthread".to_string(),
+                "-lm".to_string(),
+                "-ldl".to_string(),
+                " -lc ".to_string(),
+            ],
         };
 
         let linux = build_clang_link_command(
@@ -3535,7 +3555,11 @@ text_utils = { path = "./packages/text_utils" }
                 .iter()
                 .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
         );
+        assert!(linux_args.iter().any(|arg| arg == "-ldl"));
+        assert!(linux_args.iter().any(|arg| arg == "-lm"));
+        assert!(linux_args.iter().any(|arg| arg == "-lpthread"));
         assert!(!linux_args.iter().any(|arg| arg == "-lc"));
+        assert!(!linux_args.iter().any(|arg| arg.trim() == "-lc"));
 
         let macos = build_clang_link_command(
             BuildPlatform::macos(),
@@ -3559,7 +3583,7 @@ text_utils = { path = "./packages/text_utils" }
                 .iter()
                 .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
         );
-        assert!(macos_args.iter().any(|arg| arg == "-lc"));
+        assert!(macos_args.iter().any(|arg| arg.trim() == "-lc"));
 
         let windows = build_clang_link_command(
             BuildPlatform::windows(),
@@ -3583,7 +3607,7 @@ text_utils = { path = "./packages/text_utils" }
                 .iter()
                 .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
         );
-        assert!(windows_args.iter().any(|arg| arg == "-lc"));
+        assert!(windows_args.iter().any(|arg| arg.trim() == "-lc"));
         assert_eq!(windows.get_program().to_string_lossy(), "clang.exe");
     }
 
