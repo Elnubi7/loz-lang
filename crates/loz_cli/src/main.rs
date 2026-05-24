@@ -2634,7 +2634,11 @@ fn build_clang_link_command<'a>(
 
     command.arg("-o").arg(executable_path);
 
-    for native_library in &runtime_link.native_static_libs {
+    for native_library in runtime_link
+        .native_static_libs
+        .iter()
+        .filter(|native_library| !(platform.os == PlatformOs::Linux && native_library.as_str() == "-lc"))
+    {
         command.arg(native_library);
     }
 
@@ -3504,7 +3508,7 @@ text_utils = { path = "./packages/text_utils" }
     fn build_link_command_is_platform_aware() {
         let runtime_link = RuntimeLinkArtifacts {
             library_path: PathBuf::from("libloz_runtime.a"),
-            native_static_libs: vec!["-lm".to_string()],
+            native_static_libs: vec!["-lm".to_string(), "-lc".to_string()],
         };
 
         let linux = build_clang_link_command(
@@ -3529,6 +3533,7 @@ text_utils = { path = "./packages/text_utils" }
                 .iter()
                 .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
         );
+        assert!(!linux_args.iter().any(|arg| arg == "-lc"));
 
         let windows = build_clang_link_command(
             BuildPlatform::windows(),
@@ -3552,6 +3557,7 @@ text_utils = { path = "./packages/text_utils" }
                 .iter()
                 .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
         );
+        assert!(windows_args.iter().any(|arg| arg == "-lc"));
         assert_eq!(windows.get_program().to_string_lossy(), "clang.exe");
     }
 
