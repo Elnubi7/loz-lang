@@ -59,79 +59,72 @@ jobs:
 
       - name: Install LLVM and Clang (Windows)
         if: runner.os == 'Windows'
-        id: install-llvm
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "18.1.8"
           cached: true
-          directory: ${{ runner.temp }}/llvm-18.1.8
 
-      - name: Configure LLVM for llvm-sys (Windows)
+      - name: Discover LLVM setup (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $llvm = $env:LLVM_PATH
-          if (!$llvm) {
-            throw "LLVM_PATH was not set by KyleMayes/install-llvm-action"
-          }
-          if (!(Test-Path $llvm)) {
-            throw "LLVM install directory does not exist: $llvm"
-          }
-          $llvm = (Resolve-Path $llvm).Path
-          $env:PATH = "$llvm\bin;$env:PATH"
-          $env:LLVM_SYS_181_PREFIX = $llvm
-          echo "$llvm\bin" >> $env:GITHUB_PATH
-          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
-
-      - name: Verify LLVM setup (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $llvm = $env:LLVM_SYS_181_PREFIX
           Write-Host "LLVM_PATH=$env:LLVM_PATH"
-          Write-Host "LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
           Write-Host "PATH=$env:PATH"
-          if (!$llvm) {
-            throw "LLVM_SYS_181_PREFIX is not set"
+
+          Get-Command clang -ErrorAction SilentlyContinue | Format-List *
+          Get-Command llvm-config -ErrorAction SilentlyContinue | Format-List *
+
+          $clangCmd = Get-Command clang -ErrorAction SilentlyContinue
+          $llvmConfigCmd = Get-Command llvm-config -ErrorAction SilentlyContinue
+
+          if (-not $clangCmd) {
+            throw "clang not found after install-llvm-action"
           }
+          if (-not $llvmConfigCmd) {
+            throw "llvm-config not found after install-llvm-action"
+          }
+
+          $clangPath = $clangCmd.Source
+          $llvmConfigPath = $llvmConfigCmd.Source
+
+          Write-Host "clang path: $clangPath"
+          Write-Host "llvm-config path: $llvmConfigPath"
+
+          $llvmBin = Split-Path $clangPath -Parent
+          $llvm = Split-Path $llvmBin -Parent
+
+          Write-Host "Detected LLVM prefix: $llvm"
+
           if (!(Test-Path $llvm)) {
-            throw "LLVM root directory missing: $llvm"
+            throw "Detected LLVM prefix does not exist: $llvm"
           }
-          $llvm = (Resolve-Path $llvm).Path
           if (!(Test-Path "$llvm\bin")) {
             throw "LLVM bin directory missing: $llvm\bin"
           }
           if (!(Test-Path "$llvm\lib")) {
             throw "LLVM lib directory missing: $llvm\lib"
           }
-          $clangPath = (where.exe clang | Select-Object -First 1)
-          if (!$clangPath) {
-            throw "clang is not available"
-          }
-          $clangPath = (Resolve-Path $clangPath).Path
-          Write-Host "clang path: $clangPath"
-          if (!$clangPath.StartsWith($llvm, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "clang was not resolved from LLVM_SYS_181_PREFIX; got: $clangPath"
-          }
-          $clangVersion = (clang --version | Out-String)
+
+          $clangVersion = & $clangPath --version
+          $llvmConfigVersion = & $llvmConfigPath --version
+
           Write-Host $clangVersion
-          if ($clangVersion -notmatch "version 18\.1\.") {
-            throw "Expected LLVM/Clang 18.1.x, got: $clangVersion"
-          }
-          $llvmConfigPath = (where.exe llvm-config | Select-Object -First 1)
-          Write-Host "llvm-config path: $llvmConfigPath"
-          if (!$llvmConfigPath) {
-            throw "llvm-config is not available; llvm-sys cannot reliably build on Windows"
-          }
-          $llvmConfigPath = (Resolve-Path $llvmConfigPath).Path
-          if (!$llvmConfigPath.StartsWith($llvm, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "llvm-config was not resolved from LLVM_SYS_181_PREFIX; got: $llvmConfigPath"
-          }
-          $llvmConfigVersion = (llvm-config --version | Out-String).Trim()
           Write-Host "llvm-config version: $llvmConfigVersion"
-          if ($llvmConfigVersion -notmatch "^18\.1\.") {
+
+          if ($clangVersion -notmatch "18\.1") {
+            throw "Expected clang 18.1.x, got: $clangVersion"
+          }
+          if ($llvmConfigVersion -notmatch "^18\.1") {
             throw "Expected llvm-config 18.1.x, got: $llvmConfigVersion"
           }
+
+          echo "$llvm\bin" >> $env:GITHUB_PATH
+          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
+
+          $env:PATH = "$llvm\bin;$env:PATH"
+          $env:LLVM_SYS_181_PREFIX = $llvm
+
+          Write-Host "Final LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
 
       - name: Run tests
         run: cargo test
@@ -169,79 +162,72 @@ jobs:
 
       - name: Install LLVM and Clang (Windows)
         if: runner.os == 'Windows'
-        id: install-llvm
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "18.1.8"
           cached: true
-          directory: ${{ runner.temp }}/llvm-18.1.8
 
-      - name: Configure LLVM for llvm-sys (Windows)
+      - name: Discover LLVM setup (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $llvm = $env:LLVM_PATH
-          if (!$llvm) {
-            throw "LLVM_PATH was not set by KyleMayes/install-llvm-action"
-          }
-          if (!(Test-Path $llvm)) {
-            throw "LLVM install directory does not exist: $llvm"
-          }
-          $llvm = (Resolve-Path $llvm).Path
-          $env:PATH = "$llvm\bin;$env:PATH"
-          $env:LLVM_SYS_181_PREFIX = $llvm
-          echo "$llvm\bin" >> $env:GITHUB_PATH
-          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
-
-      - name: Verify LLVM setup (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $llvm = $env:LLVM_SYS_181_PREFIX
           Write-Host "LLVM_PATH=$env:LLVM_PATH"
-          Write-Host "LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
           Write-Host "PATH=$env:PATH"
-          if (!$llvm) {
-            throw "LLVM_SYS_181_PREFIX is not set"
+
+          Get-Command clang -ErrorAction SilentlyContinue | Format-List *
+          Get-Command llvm-config -ErrorAction SilentlyContinue | Format-List *
+
+          $clangCmd = Get-Command clang -ErrorAction SilentlyContinue
+          $llvmConfigCmd = Get-Command llvm-config -ErrorAction SilentlyContinue
+
+          if (-not $clangCmd) {
+            throw "clang not found after install-llvm-action"
           }
+          if (-not $llvmConfigCmd) {
+            throw "llvm-config not found after install-llvm-action"
+          }
+
+          $clangPath = $clangCmd.Source
+          $llvmConfigPath = $llvmConfigCmd.Source
+
+          Write-Host "clang path: $clangPath"
+          Write-Host "llvm-config path: $llvmConfigPath"
+
+          $llvmBin = Split-Path $clangPath -Parent
+          $llvm = Split-Path $llvmBin -Parent
+
+          Write-Host "Detected LLVM prefix: $llvm"
+
           if (!(Test-Path $llvm)) {
-            throw "LLVM root directory missing: $llvm"
+            throw "Detected LLVM prefix does not exist: $llvm"
           }
-          $llvm = (Resolve-Path $llvm).Path
           if (!(Test-Path "$llvm\bin")) {
             throw "LLVM bin directory missing: $llvm\bin"
           }
           if (!(Test-Path "$llvm\lib")) {
             throw "LLVM lib directory missing: $llvm\lib"
           }
-          $clangPath = (where.exe clang | Select-Object -First 1)
-          if (!$clangPath) {
-            throw "clang is not available"
-          }
-          $clangPath = (Resolve-Path $clangPath).Path
-          Write-Host "clang path: $clangPath"
-          if (!$clangPath.StartsWith($llvm, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "clang was not resolved from LLVM_SYS_181_PREFIX; got: $clangPath"
-          }
-          $clangVersion = (clang --version | Out-String)
+
+          $clangVersion = & $clangPath --version
+          $llvmConfigVersion = & $llvmConfigPath --version
+
           Write-Host $clangVersion
-          if ($clangVersion -notmatch "version 18\.1\.") {
-            throw "Expected LLVM/Clang 18.1.x, got: $clangVersion"
-          }
-          $llvmConfigPath = (where.exe llvm-config | Select-Object -First 1)
-          Write-Host "llvm-config path: $llvmConfigPath"
-          if (!$llvmConfigPath) {
-            throw "llvm-config is not available; llvm-sys cannot reliably build on Windows"
-          }
-          $llvmConfigPath = (Resolve-Path $llvmConfigPath).Path
-          if (!$llvmConfigPath.StartsWith($llvm, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "llvm-config was not resolved from LLVM_SYS_181_PREFIX; got: $llvmConfigPath"
-          }
-          $llvmConfigVersion = (llvm-config --version | Out-String).Trim()
           Write-Host "llvm-config version: $llvmConfigVersion"
-          if ($llvmConfigVersion -notmatch "^18\.1\.") {
+
+          if ($clangVersion -notmatch "18\.1") {
+            throw "Expected clang 18.1.x, got: $clangVersion"
+          }
+          if ($llvmConfigVersion -notmatch "^18\.1") {
             throw "Expected llvm-config 18.1.x, got: $llvmConfigVersion"
           }
+
+          echo "$llvm\bin" >> $env:GITHUB_PATH
+          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
+
+          $env:PATH = "$llvm\bin;$env:PATH"
+          $env:LLVM_SYS_181_PREFIX = $llvm
+
+          Write-Host "Final LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
 
       - name: Build Loz
         run: cargo build
