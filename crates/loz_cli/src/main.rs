@@ -2626,7 +2626,10 @@ fn build_clang_link_command<'a>(
     command.arg(object_path).arg(&runtime_link.library_path);
 
     if platform.os == PlatformOs::Linux {
-        command.arg("-no-pie");
+        command
+            .arg("-no-pie")
+            .arg("-L/usr/lib/x86_64-linux-gnu")
+            .arg("-L/lib/x86_64-linux-gnu");
     }
 
     command.arg("-o").arg(executable_path);
@@ -2752,9 +2755,14 @@ fn parse_native_static_libs(output: &str) -> Vec<String> {
 }
 
 fn run_command(program: &str, command: &mut Command) -> Result<(), CliError> {
+    let command_line = format_command(command);
     let output = command
         .output()
-        .map_err(|error| CliError::new(format!("failed to run {program}: {error}")))?;
+        .map_err(|error| {
+            CliError::new(format!(
+                "failed to run {program}: {error}\ncommand:\n{command_line}"
+            ))
+        })?;
 
     if output.status.success() {
         return Ok(());
@@ -2764,15 +2772,36 @@ fn run_command(program: &str, command: &mut Command) -> Result<(), CliError> {
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     Err(CliError::new(format!(
-        "{program} failed with status {}.\nstdout:\n{}\nstderr:\n{}",
+        "{program} failed with status {}.\ncommand:\n{}\nstdout:\n{}\nstderr:\n{}",
         output
             .status
             .code()
             .map(|code| code.to_string())
             .unwrap_or_else(|| "terminated by signal".to_string()),
+        command_line,
         stdout.trim_end(),
         stderr.trim_end(),
     )))
+}
+
+fn format_command(command: &Command) -> String {
+    std::iter::once(command.get_program())
+        .chain(command.get_args())
+        .map(|argument| quote_command_argument(&argument.to_string_lossy()))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn quote_command_argument(argument: &str) -> String {
+    if argument.is_empty()
+        || argument
+            .chars()
+            .any(|character| character.is_whitespace() || matches!(character, '"' | '\''))
+    {
+        format!("\"{}\"", argument.replace('"', "\\\""))
+    } else {
+        argument.to_string()
+    }
 }
 
 fn find_project_root_from_source(source_path: &Path) -> Option<PathBuf> {
@@ -3492,6 +3521,8 @@ text_utils = { path = "./packages/text_utils" }
             .map(|arg| arg.to_string_lossy().to_string())
             .collect();
         assert!(linux_args.iter().any(|arg| arg == "-no-pie"));
+        assert!(linux_args.iter().any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu"));
+        assert!(linux_args.iter().any(|arg| arg == "-L/lib/x86_64-linux-gnu"));
 
         let windows = build_clang_link_command(
             BuildPlatform::windows(),
@@ -3505,6 +3536,12 @@ text_utils = { path = "./packages/text_utils" }
             .map(|arg| arg.to_string_lossy().to_string())
             .collect();
         assert!(!windows_args.iter().any(|arg| arg == "-no-pie"));
+        assert!(!windows_args
+            .iter()
+            .any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu"));
+        assert!(!windows_args
+            .iter()
+            .any(|arg| arg == "-L/lib/x86_64-linux-gnu"));
         assert_eq!(windows.get_program().to_string_lossy(), "clang.exe");
     }
 
