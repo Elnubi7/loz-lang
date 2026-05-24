@@ -1,0 +1,178 @@
+name: Loz CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup LLVM and Clang (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm clang
+          echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
+
+      - name: Setup LLVM and Clang (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm
+          echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Setup LLVM and Clang (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install llvm -y
+          echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
+          echo "LLVM_SYS_181_PREFIX=C:\Program Files\LLVM" >> $env:GITHUB_ENV
+
+      - name: Run tests
+        run: cargo test
+
+  examples:
+    name: Examples (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Setup LLVM and Clang (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm clang
+          echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
+
+      - name: Setup LLVM and Clang (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm
+          echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Setup LLVM and Clang (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install llvm -y
+          echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
+          echo "LLVM_SYS_181_PREFIX=C:\Program Files\LLVM" >> $env:GITHUB_ENV
+
+      - name: Build Loz
+        run: cargo build
+
+      - name: Run examples (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ./target/debug/loz check examples/hello.loz
+          ./target/debug/loz run examples/hello.loz
+          ./target/debug/loz check examples/json_schema.loz
+          ./target/debug/loz run examples/json_schema.loz
+          ./target/debug/loz check examples/tool_basic.loz
+          ./target/debug/loz run examples/tool_basic.loz
+          ./target/debug/loz check examples/async_task.loz
+          ./target/debug/loz check examples/constant_eval.loz
+          ./target/debug/loz run examples/constant_eval.loz
+          LOZ_LLM_PROVIDER=mock ./target/debug/loz agent run examples/agent_support.loz "hello"
+          ./target/debug/loz workflow run examples/workflow_onboarding.loz
+          cd examples/package_demo
+          ../../target/debug/loz deps
+          ../../target/debug/loz check
+          ../../target/debug/loz run
+          cd ../..
+
+      - name: Run examples (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          .\target\debug\loz.exe check examples\hello.loz
+          .\target\debug\loz.exe run examples\hello.loz
+          .\target\debug\loz.exe check examples\json_schema.loz
+          .\target\debug\loz.exe run examples\json_schema.loz
+          .\target\debug\loz.exe check examples\tool_basic.loz
+          .\target\debug\loz.exe run examples\tool_basic.loz
+          .\target\debug\loz.exe check examples\async_task.loz
+          .\target\debug\loz.exe check examples\constant_eval.loz
+          .\target\debug\loz.exe run examples\constant_eval.loz
+          $env:LOZ_LLM_PROVIDER="mock"
+          .\target\debug\loz.exe agent run examples\agent_support.loz "hello"
+          .\target\debug\loz.exe workflow run examples\workflow_onboarding.loz
+          cd examples\package_demo
+          ..\..\target\debug\loz.exe deps
+          ..\..\target\debug\loz.exe check
+          ..\..\target\debug\loz.exe run
+          cd ..\..
+
+      - name: Test native build (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          ./target/debug/loz build examples/hello.loz
+          ./output/hello
+
+  vscode-extension-check:
+    name: VS Code Extension Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate extension JSON
+        run: |
+          node -e "const fs=require('fs'); for (const f of ['vscode-loz/package.json','vscode-loz/language-configuration.json','vscode-loz/syntaxes/loz.tmLanguage.json','vscode-loz/snippets/loz.json','vscode-loz/icons/loz-icon-theme.json']) JSON.parse(fs.readFileSync(f,'utf8')); console.log('VS Code extension JSON ok');"
+
+      - name: Check extension JavaScript
+        run: node --check vscode-loz/src/extension.js
