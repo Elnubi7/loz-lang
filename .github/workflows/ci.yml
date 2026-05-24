@@ -57,13 +57,21 @@ jobs:
           echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
 
-      - name: Setup LLVM and Clang (Windows)
+      - name: Install LLVM and Clang (Windows)
+        if: runner.os == 'Windows'
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18.1.8"
+          cached: true
+
+      - name: Configure LLVM for llvm-sys (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install llvm --version=18.1.8 -y --no-progress --allow-downgrade --force
-          choco list llvm
-          $llvm = "C:\Program Files\LLVM"
+          $llvm = $env:LLVM_PATH
+          if (!$llvm) {
+            throw "LLVM_PATH was not set by KyleMayes/install-llvm-action"
+          }
           $env:PATH = "$llvm\bin;$env:PATH"
           $env:LLVM_SYS_181_PREFIX = $llvm
           echo "$llvm\bin" >> $env:GITHUB_PATH
@@ -73,11 +81,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $llvm = "C:\Program Files\LLVM"
+          $llvm = $env:LLVM_SYS_181_PREFIX
           Write-Host "LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
           Write-Host "PATH=$env:PATH"
-          if ($env:LLVM_SYS_181_PREFIX -ne $llvm) {
-            throw "LLVM_SYS_181_PREFIX is not set to $llvm"
+          if (!$llvm) {
+            throw "LLVM_SYS_181_PREFIX is not set"
           }
           if (!(Test-Path $llvm)) {
             throw "LLVM root directory missing: $llvm"
@@ -89,19 +97,19 @@ jobs:
             throw "LLVM lib directory missing: $llvm\lib"
           }
           where.exe clang
-          $clangVersion = (& "$llvm\bin\clang.exe" --version | Out-String)
+          $clangVersion = (clang --version | Out-String)
           Write-Host $clangVersion
           if ($clangVersion -notmatch "version 18\.") {
             throw "Expected LLVM/Clang 18, got: $clangVersion"
           }
-          if (Test-Path "$llvm\bin\llvm-config.exe") {
-            $llvmConfigVersion = (& "$llvm\bin\llvm-config.exe" --version | Out-String).Trim()
-            Write-Host "llvm-config version: $llvmConfigVersion"
-            if ($llvmConfigVersion -notmatch "^18\.") {
-              throw "Expected llvm-config 18.x, got: $llvmConfigVersion"
-            }
-          } else {
-            Write-Host "llvm-config.exe not found"
+          where.exe llvm-config
+          if ($LASTEXITCODE -ne 0) {
+            throw "llvm-config is not available; llvm-sys cannot reliably build on Windows"
+          }
+          $llvmConfigVersion = (llvm-config --version | Out-String).Trim()
+          Write-Host "llvm-config version: $llvmConfigVersion"
+          if ($llvmConfigVersion -notmatch "^18\.") {
+            throw "Expected llvm-config 18.x, got: $llvmConfigVersion"
           }
 
       - name: Run tests
@@ -128,7 +136,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm clang build-essential libc6-dev
+          sudo apt-get install -y llvm clang build-essential libc6-dev gcc g++
           echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
 
       - name: Setup LLVM and Clang (macOS)
@@ -138,13 +146,21 @@ jobs:
           echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
 
-      - name: Setup LLVM and Clang (Windows)
+      - name: Install LLVM and Clang (Windows)
+        if: runner.os == 'Windows'
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18.1.8"
+          cached: true
+
+      - name: Configure LLVM for llvm-sys (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install llvm --version=18.1.8 -y --no-progress --allow-downgrade --force
-          choco list llvm
-          $llvm = "C:\Program Files\LLVM"
+          $llvm = $env:LLVM_PATH
+          if (!$llvm) {
+            throw "LLVM_PATH was not set by KyleMayes/install-llvm-action"
+          }
           $env:PATH = "$llvm\bin;$env:PATH"
           $env:LLVM_SYS_181_PREFIX = $llvm
           echo "$llvm\bin" >> $env:GITHUB_PATH
@@ -154,11 +170,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $llvm = "C:\Program Files\LLVM"
+          $llvm = $env:LLVM_SYS_181_PREFIX
           Write-Host "LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
           Write-Host "PATH=$env:PATH"
-          if ($env:LLVM_SYS_181_PREFIX -ne $llvm) {
-            throw "LLVM_SYS_181_PREFIX is not set to $llvm"
+          if (!$llvm) {
+            throw "LLVM_SYS_181_PREFIX is not set"
           }
           if (!(Test-Path $llvm)) {
             throw "LLVM root directory missing: $llvm"
@@ -170,19 +186,19 @@ jobs:
             throw "LLVM lib directory missing: $llvm\lib"
           }
           where.exe clang
-          $clangVersion = (& "$llvm\bin\clang.exe" --version | Out-String)
+          $clangVersion = (clang --version | Out-String)
           Write-Host $clangVersion
           if ($clangVersion -notmatch "version 18\.") {
             throw "Expected LLVM/Clang 18, got: $clangVersion"
           }
-          if (Test-Path "$llvm\bin\llvm-config.exe") {
-            $llvmConfigVersion = (& "$llvm\bin\llvm-config.exe" --version | Out-String).Trim()
-            Write-Host "llvm-config version: $llvmConfigVersion"
-            if ($llvmConfigVersion -notmatch "^18\.") {
-              throw "Expected llvm-config 18.x, got: $llvmConfigVersion"
-            }
-          } else {
-            Write-Host "llvm-config.exe not found"
+          where.exe llvm-config
+          if ($LASTEXITCODE -ne 0) {
+            throw "llvm-config is not available; llvm-sys cannot reliably build on Windows"
+          }
+          $llvmConfigVersion = (llvm-config --version | Out-String).Trim()
+          Write-Host "llvm-config version: $llvmConfigVersion"
+          if ($llvmConfigVersion -notmatch "^18\.") {
+            throw "Expected llvm-config 18.x, got: $llvmConfigVersion"
           }
 
       - name: Build Loz
