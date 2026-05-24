@@ -2637,7 +2637,9 @@ fn build_clang_link_command<'a>(
     for native_library in runtime_link
         .native_static_libs
         .iter()
-        .filter(|native_library| !(platform.os == PlatformOs::Linux && native_library.as_str() == "-lc"))
+        .filter(|native_library| {
+            !(platform.os == PlatformOs::Linux && native_library.as_str() == "-lc")
+        })
     {
         command.arg(native_library);
     }
@@ -3534,6 +3536,30 @@ text_utils = { path = "./packages/text_utils" }
                 .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
         );
         assert!(!linux_args.iter().any(|arg| arg == "-lc"));
+
+        let macos = build_clang_link_command(
+            BuildPlatform::macos(),
+            Path::new("clang"),
+            Path::new("main.o"),
+            &runtime_link,
+            Path::new("output/main"),
+        );
+        let macos_args: Vec<String> = macos
+            .get_args()
+            .map(|arg| arg.to_string_lossy().to_string())
+            .collect();
+        assert!(!macos_args.iter().any(|arg| arg == "-no-pie"));
+        assert!(
+            !macos_args
+                .iter()
+                .any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu")
+        );
+        assert!(
+            !macos_args
+                .iter()
+                .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
+        );
+        assert!(macos_args.iter().any(|arg| arg == "-lc"));
 
         let windows = build_clang_link_command(
             BuildPlatform::windows(),
