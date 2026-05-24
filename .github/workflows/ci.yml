@@ -47,7 +47,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm clang
+          sudo apt-get install -y llvm clang build-essential libc6-dev
           echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
 
       - name: Setup LLVM and Clang (macOS)
@@ -62,16 +62,45 @@ jobs:
         shell: pwsh
         run: |
           choco install llvm --version=18.1.8 -y --no-progress
-          $llvmRoot = "C:\Program Files\LLVM"
-          $llvmBin = "$llvmRoot\bin"
-          $env:PATH = "$llvmBin;$env:PATH"
-          echo $llvmBin >> $env:GITHUB_PATH
-          echo "LLVM_SYS_181_PREFIX=$llvmRoot" >> $env:GITHUB_ENV
-          clang --version
-          if (Get-Command llvm-config -ErrorAction SilentlyContinue) {
-            llvm-config --version
+          $llvm = "C:\Program Files\LLVM"
+          $env:PATH = "$llvm\bin;$env:PATH"
+          $env:LLVM_SYS_181_PREFIX = $llvm
+          echo "$llvm\bin" >> $env:GITHUB_PATH
+          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
+
+      - name: Verify LLVM setup (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $llvm = "C:\Program Files\LLVM"
+          Write-Host "LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
+          Write-Host "PATH=$env:PATH"
+          if ($env:LLVM_SYS_181_PREFIX -ne $llvm) {
+            throw "LLVM_SYS_181_PREFIX is not set to $llvm"
+          }
+          if (!(Test-Path $llvm)) {
+            throw "LLVM root directory missing: $llvm"
+          }
+          if (!(Test-Path "$llvm\bin")) {
+            throw "LLVM bin directory missing: $llvm\bin"
+          }
+          if (!(Test-Path "$llvm\lib")) {
+            throw "LLVM lib directory missing: $llvm\lib"
+          }
+          where.exe clang
+          $clangVersion = (& "$llvm\bin\clang.exe" --version | Out-String)
+          Write-Host $clangVersion
+          if ($clangVersion -notmatch "version 18\.") {
+            throw "Expected LLVM/Clang 18, got: $clangVersion"
+          }
+          if (Test-Path "$llvm\bin\llvm-config.exe") {
+            $llvmConfigVersion = (& "$llvm\bin\llvm-config.exe" --version | Out-String).Trim()
+            Write-Host "llvm-config version: $llvmConfigVersion"
+            if ($llvmConfigVersion -notmatch "^18\.") {
+              throw "Expected llvm-config 18.x, got: $llvmConfigVersion"
+            }
           } else {
-            Write-Host "llvm-config is not available on Windows LLVM install"
+            Write-Host "llvm-config.exe not found"
           }
 
       - name: Run tests
@@ -98,7 +127,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm clang
+          sudo apt-get install -y llvm clang build-essential libc6-dev
           echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
 
       - name: Setup LLVM and Clang (macOS)
@@ -113,16 +142,45 @@ jobs:
         shell: pwsh
         run: |
           choco install llvm --version=18.1.8 -y --no-progress
-          $llvmRoot = "C:\Program Files\LLVM"
-          $llvmBin = "$llvmRoot\bin"
-          $env:PATH = "$llvmBin;$env:PATH"
-          echo $llvmBin >> $env:GITHUB_PATH
-          echo "LLVM_SYS_181_PREFIX=$llvmRoot" >> $env:GITHUB_ENV
-          clang --version
-          if (Get-Command llvm-config -ErrorAction SilentlyContinue) {
-            llvm-config --version
+          $llvm = "C:\Program Files\LLVM"
+          $env:PATH = "$llvm\bin;$env:PATH"
+          $env:LLVM_SYS_181_PREFIX = $llvm
+          echo "$llvm\bin" >> $env:GITHUB_PATH
+          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
+
+      - name: Verify LLVM setup (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $llvm = "C:\Program Files\LLVM"
+          Write-Host "LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
+          Write-Host "PATH=$env:PATH"
+          if ($env:LLVM_SYS_181_PREFIX -ne $llvm) {
+            throw "LLVM_SYS_181_PREFIX is not set to $llvm"
+          }
+          if (!(Test-Path $llvm)) {
+            throw "LLVM root directory missing: $llvm"
+          }
+          if (!(Test-Path "$llvm\bin")) {
+            throw "LLVM bin directory missing: $llvm\bin"
+          }
+          if (!(Test-Path "$llvm\lib")) {
+            throw "LLVM lib directory missing: $llvm\lib"
+          }
+          where.exe clang
+          $clangVersion = (& "$llvm\bin\clang.exe" --version | Out-String)
+          Write-Host $clangVersion
+          if ($clangVersion -notmatch "version 18\.") {
+            throw "Expected LLVM/Clang 18, got: $clangVersion"
+          }
+          if (Test-Path "$llvm\bin\llvm-config.exe") {
+            $llvmConfigVersion = (& "$llvm\bin\llvm-config.exe" --version | Out-String).Trim()
+            Write-Host "llvm-config version: $llvmConfigVersion"
+            if ($llvmConfigVersion -notmatch "^18\.") {
+              throw "Expected llvm-config 18.x, got: $llvmConfigVersion"
+            }
           } else {
-            Write-Host "llvm-config is not available on Windows LLVM install"
+            Write-Host "llvm-config.exe not found"
           }
 
       - name: Build Loz

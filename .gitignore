@@ -104,3 +104,4 @@ desktop.ini
 loz_codegen_python_test_*.py
 loz_runtime_python_test_*.py
 loz_*_python_test_*.py
+.ci-log-*.zip
