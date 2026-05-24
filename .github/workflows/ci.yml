@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,77 +57,32 @@ jobs:
           echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
 
-      - name: Install LLVM and Clang (Windows)
-        if: runner.os == 'Windows'
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "18.1.8"
-          cached: true
-
-      - name: Discover LLVM setup (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Write-Host "LLVM_PATH=$env:LLVM_PATH"
-          Write-Host "PATH=$env:PATH"
-
-          Get-Command clang -ErrorAction SilentlyContinue | Format-List *
-          Get-Command llvm-config -ErrorAction SilentlyContinue | Format-List *
-
-          $clangCmd = Get-Command clang -ErrorAction SilentlyContinue
-          $llvmConfigCmd = Get-Command llvm-config -ErrorAction SilentlyContinue
-
-          if (-not $clangCmd) {
-            throw "clang not found after install-llvm-action"
-          }
-          if (-not $llvmConfigCmd) {
-            throw "llvm-config not found after install-llvm-action"
-          }
-
-          $clangPath = $clangCmd.Source
-          $llvmConfigPath = $llvmConfigCmd.Source
-
-          Write-Host "clang path: $clangPath"
-          Write-Host "llvm-config path: $llvmConfigPath"
-
-          $llvmBin = Split-Path $clangPath -Parent
-          $llvm = Split-Path $llvmBin -Parent
-
-          Write-Host "Detected LLVM prefix: $llvm"
-
-          if (!(Test-Path $llvm)) {
-            throw "Detected LLVM prefix does not exist: $llvm"
-          }
-          if (!(Test-Path "$llvm\bin")) {
-            throw "LLVM bin directory missing: $llvm\bin"
-          }
-          if (!(Test-Path "$llvm\lib")) {
-            throw "LLVM lib directory missing: $llvm\lib"
-          }
-
-          $clangVersion = & $clangPath --version
-          $llvmConfigVersion = & $llvmConfigPath --version
-
-          Write-Host $clangVersion
-          Write-Host "llvm-config version: $llvmConfigVersion"
-
-          if ($clangVersion -notmatch "18\.1") {
-            throw "Expected clang 18.1.x, got: $clangVersion"
-          }
-          if ($llvmConfigVersion -notmatch "^18\.1") {
-            throw "Expected llvm-config 18.1.x, got: $llvmConfigVersion"
-          }
-
-          echo "$llvm\bin" >> $env:GITHUB_PATH
-          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
-
-          $env:PATH = "$llvm\bin;$env:PATH"
-          $env:LLVM_SYS_181_PREFIX = $llvm
-
-          Write-Host "Final LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
-
       - name: Run tests
         run: cargo test
+
+  # Windows full LLVM/codegen CI is temporarily disabled because llvm-sys v181
+  # requires LLVM 18 with llvm-config, while windows-latest currently exposes
+  # LLVM 20 and no reliable LLVM 18 llvm-config path. Windows basic crate tests
+  # still run.
+  windows-basic:
+    name: Windows Basic
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run non-LLVM crate tests
+        run: |
+          cargo test -p loz_ast
+          cargo test -p loz_lexer
+          cargo test -p loz_parser
+          cargo test -p loz_semantic
 
   examples:
     name: Examples (${{ matrix.os }})
@@ -135,7 +90,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -159,75 +114,6 @@ jobs:
           brew install llvm
           echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
-
-      - name: Install LLVM and Clang (Windows)
-        if: runner.os == 'Windows'
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "18.1.8"
-          cached: true
-
-      - name: Discover LLVM setup (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Write-Host "LLVM_PATH=$env:LLVM_PATH"
-          Write-Host "PATH=$env:PATH"
-
-          Get-Command clang -ErrorAction SilentlyContinue | Format-List *
-          Get-Command llvm-config -ErrorAction SilentlyContinue | Format-List *
-
-          $clangCmd = Get-Command clang -ErrorAction SilentlyContinue
-          $llvmConfigCmd = Get-Command llvm-config -ErrorAction SilentlyContinue
-
-          if (-not $clangCmd) {
-            throw "clang not found after install-llvm-action"
-          }
-          if (-not $llvmConfigCmd) {
-            throw "llvm-config not found after install-llvm-action"
-          }
-
-          $clangPath = $clangCmd.Source
-          $llvmConfigPath = $llvmConfigCmd.Source
-
-          Write-Host "clang path: $clangPath"
-          Write-Host "llvm-config path: $llvmConfigPath"
-
-          $llvmBin = Split-Path $clangPath -Parent
-          $llvm = Split-Path $llvmBin -Parent
-
-          Write-Host "Detected LLVM prefix: $llvm"
-
-          if (!(Test-Path $llvm)) {
-            throw "Detected LLVM prefix does not exist: $llvm"
-          }
-          if (!(Test-Path "$llvm\bin")) {
-            throw "LLVM bin directory missing: $llvm\bin"
-          }
-          if (!(Test-Path "$llvm\lib")) {
-            throw "LLVM lib directory missing: $llvm\lib"
-          }
-
-          $clangVersion = & $clangPath --version
-          $llvmConfigVersion = & $llvmConfigPath --version
-
-          Write-Host $clangVersion
-          Write-Host "llvm-config version: $llvmConfigVersion"
-
-          if ($clangVersion -notmatch "18\.1") {
-            throw "Expected clang 18.1.x, got: $clangVersion"
-          }
-          if ($llvmConfigVersion -notmatch "^18\.1") {
-            throw "Expected llvm-config 18.1.x, got: $llvmConfigVersion"
-          }
-
-          echo "$llvm\bin" >> $env:GITHUB_PATH
-          echo "LLVM_SYS_181_PREFIX=$llvm" >> $env:GITHUB_ENV
-
-          $env:PATH = "$llvm\bin;$env:PATH"
-          $env:LLVM_SYS_181_PREFIX = $llvm
-
-          Write-Host "Final LLVM_SYS_181_PREFIX=$env:LLVM_SYS_181_PREFIX"
 
       - name: Build Loz
         run: cargo build
@@ -253,30 +139,6 @@ jobs:
           ../../target/debug/loz check
           ../../target/debug/loz run
           cd ../..
-
-      - name: Run examples (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Get-Location
-          .\target\debug\loz.exe --version
-          .\target\debug\loz.exe check examples\hello.loz
-          .\target\debug\loz.exe run examples\hello.loz
-          .\target\debug\loz.exe check examples\json_schema.loz
-          .\target\debug\loz.exe run examples\json_schema.loz
-          .\target\debug\loz.exe check examples\tool_basic.loz
-          .\target\debug\loz.exe run examples\tool_basic.loz
-          .\target\debug\loz.exe check examples\async_task.loz
-          .\target\debug\loz.exe check examples\constant_eval.loz
-          .\target\debug\loz.exe run examples\constant_eval.loz
-          $env:LOZ_LLM_PROVIDER="mock"
-          .\target\debug\loz.exe agent run examples\agent_support.loz "hello"
-          .\target\debug\loz.exe workflow run examples\workflow_onboarding.loz
-          cd examples\package_demo
-          ..\..\target\debug\loz.exe deps
-          ..\..\target\debug\loz.exe check
-          ..\..\target\debug\loz.exe run
-          cd ..\..
 
       - name: Test native build (Ubuntu)
         if: runner.os == 'Linux'
