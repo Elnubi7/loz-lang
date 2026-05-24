@@ -43,11 +43,20 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
 
-      - name: Setup LLVM and Clang (Linux)
+      - name: Install Linux native linker dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm clang build-essential libc6-dev
+          sudo apt-get install -y build-essential clang gcc g++ libc6-dev pkg-config llvm
+          echo "Native linker diagnostics:"
+          clang --version
+          gcc --version
+          ld --version
+          echo "Checking libc development files:"
+          ls -l /usr/lib/x86_64-linux-gnu/libc.so || true
+          ls -l /usr/lib/x86_64-linux-gnu/libc.a || true
+          ls -l /lib/x86_64-linux-gnu/libc.so.6 || true
+          clang -print-search-dirs
           echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
 
       - name: Setup LLVM and Clang (macOS)
@@ -58,7 +67,7 @@ jobs:
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
 
       - name: Run tests
-        run: cargo test
+        run: cargo test --workspace
 
   # Windows full LLVM/codegen CI is temporarily disabled because llvm-sys v181
   # requires LLVM 18 with llvm-config, while windows-latest currently exposes
@@ -101,16 +110,20 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
 
-      - name: Install native linking dependencies (Ubuntu)
+      - name: Install Linux native linker dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libc6-dev gcc g++ clang llvm binutils
+          sudo apt-get install -y build-essential clang gcc g++ libc6-dev pkg-config llvm
+          echo "Native linker diagnostics:"
           clang --version
           gcc --version
           ld --version
-          ls -la /usr/lib/x86_64-linux-gnu/libc.so* || true
-          ls -la /lib/x86_64-linux-gnu/libc.so* || true
+          echo "Checking libc development files:"
+          ls -l /usr/lib/x86_64-linux-gnu/libc.so || true
+          ls -l /usr/lib/x86_64-linux-gnu/libc.a || true
+          ls -l /lib/x86_64-linux-gnu/libc.so.6 || true
+          clang -print-search-dirs
           echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
 
       - name: Setup LLVM and Clang (macOS)
@@ -121,7 +134,7 @@ jobs:
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
 
       - name: Build Loz
-        run: cargo build
+        run: cargo build --workspace
 
       - name: Run examples (Unix)
         if: runner.os != 'Windows'
@@ -145,31 +158,12 @@ jobs:
           ../../target/debug/loz run
           cd ../..
 
-      - name: Configure Ubuntu native library path
+      - name: Check native linker availability
         if: runner.os == 'Linux'
         run: |
-          echo "LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
-
-      - name: Verify Ubuntu native libc toolchain
-        if: runner.os == 'Linux'
-        run: |
-          echo "=== clang ==="
-          clang --version
-          echo "=== gcc ==="
-          gcc --version
-          echo "=== ld ==="
-          ld --version
-          echo "=== gcc search dirs ==="
-          gcc -print-search-dirs
-          echo "=== clang search dirs ==="
-          clang -print-search-dirs || true
-          echo "=== libc candidates ==="
-          find /usr/lib /lib -name 'libc.so*' -o -name 'libc.a' | sort || true
-          echo "=== expected paths ==="
-          ls -la /usr/lib/x86_64-linux-gnu/libc.so* || true
-          ls -la /lib/x86_64-linux-gnu/libc.so* || true
-          test -e /usr/lib/x86_64-linux-gnu/libc.so || test -e /lib/x86_64-linux-gnu/libc.so || (echo "libc.so development linker file is missing" && exit 1)
+          test -f /usr/lib/x86_64-linux-gnu/libc.so
+          clang -v -x c /dev/null -o /tmp/clang_smoke_test
+          /tmp/clang_smoke_test || true
 
       - name: Test native build (Ubuntu)
         if: runner.os == 'Linux'
