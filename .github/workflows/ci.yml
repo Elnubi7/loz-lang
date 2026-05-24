@@ -62,7 +62,7 @@ jobs:
         shell: pwsh
         run: |
           choco install llvm --version=18.1.8 -y --no-progress --allow-downgrade --force
-          choco list llvm --local-only
+          choco list llvm
           $llvm = "C:\Program Files\LLVM"
           $env:PATH = "$llvm\bin;$env:PATH"
           $env:LLVM_SYS_181_PREFIX = $llvm
@@ -143,7 +143,7 @@ jobs:
         shell: pwsh
         run: |
           choco install llvm --version=18.1.8 -y --no-progress --allow-downgrade --force
-          choco list llvm --local-only
+          choco list llvm
           $llvm = "C:\Program Files\LLVM"
           $env:PATH = "$llvm\bin;$env:PATH"
           $env:LLVM_SYS_181_PREFIX = $llvm
