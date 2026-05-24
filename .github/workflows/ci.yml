@@ -162,8 +162,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           test -f /usr/lib/x86_64-linux-gnu/libc.so
-          clang -v -x c /dev/null -o /tmp/clang_smoke_test
-          /tmp/clang_smoke_test || true
+          printf 'int main(void){return 0;}\n' > /tmp/clang_smoke_test.c
+          clang -v /tmp/clang_smoke_test.c -o /tmp/clang_smoke_test
+          /tmp/clang_smoke_test
 
       - name: Test native build (Ubuntu)
         if: runner.os == 'Linux'
