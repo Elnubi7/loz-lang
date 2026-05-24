@@ -1,0 +1,29 @@
+{
+  "iconDefinitions": {
+    "_file": {
+      "iconPath": "../assets/file.svg"
+    },
+    "_folder": {
+      "iconPath": "../assets/folder.svg"
+    },
+    "_folder_open": {
+      "iconPath": "../assets/folder-open.svg"
+    },
+    "_loz_file": {
+      "iconPath": "../assets/loz.svg"
+    },
+    "_toml_file": {
+      "iconPath": "../assets/file.svg"
+    }
+  },
+  "file": "_file",
+  "folder": "_folder",
+  "folderExpanded": "_folder_open",
+  "fileExtensions": {
+    "loz": "_loz_file",
+    "toml": "_toml_file"
+  },
+  "fileNames": {
+    "loz.toml": "_toml_file"
+  }
+}

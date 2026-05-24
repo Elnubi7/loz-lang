@@ -1,0 +1,95 @@
+{
+  "Main Function": {
+    "prefix": "main",
+    "body": [
+      "func main() -> i32 {",
+      "\t$0",
+      "\treturn 0;",
+      "}"
+    ],
+    "description": "Create a Loz main function"
+  },
+  "Function": {
+    "prefix": "func",
+    "body": [
+      "func ${1:name}(${2}) -> ${3:i32} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a Loz function"
+  },
+  "Tool": {
+    "prefix": "tool",
+    "body": [
+      "tool ${1:name}(${2:input: Json}) -> ${3:Json} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create a Loz tool"
+  },
+  "Schema": {
+    "prefix": "schema",
+    "body": [
+      "schema ${1:Name} {",
+      "\t${2:id}: ${3:i32}",
+      "}"
+    ],
+    "description": "Create a Loz schema"
+  },
+  "Agent": {
+    "prefix": "agent",
+    "body": [
+      "agent ${1:SupportAgent} {",
+      "\tmodel: \"${2:mock}\";",
+      "",
+      "\ttools: [",
+      "\t\t${3}",
+      "\t];",
+      "",
+      "\ttask answer(question: Text) -> Text {",
+      "\t\t$0",
+      "\t}",
+      "}"
+    ],
+    "description": "Create a Loz agent"
+  },
+  "Workflow": {
+    "prefix": "workflow",
+    "body": [
+      "workflow ${1:Onboarding} {",
+      "\tstep ${2:first_step};",
+      "}"
+    ],
+    "description": "Create a Loz workflow"
+  },
+  "Async Task": {
+    "prefix": "async-task",
+    "body": [
+      "async task ${1:fetch_data}(${2}) -> ${3:Json} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Create an async Loz task"
+  },
+  "JSON Parse": {
+    "prefix": "json-parse",
+    "body": [
+      "const ${1:data}: Json = json.parse(\"${2:{\\\"id\\\":1}}\");"
+    ],
+    "description": "Parse JSON into a Loz Json value"
+  },
+  "Python Call": {
+    "prefix": "python-call",
+    "body": [
+      "const ${1:result}: Json = python.call(\"${2:tools.analyze_text}\", ${3:payload});"
+    ],
+    "description": "Call a Python bridge from Loz"
+  },
+  "LLM Ask": {
+    "prefix": "llm-ask",
+    "body": [
+      "const ${1:answer}: Text = llm.ask(${2:question});"
+    ],
+    "description": "Call llm.ask from Loz"
+  }
+}

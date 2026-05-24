@@ -1,0 +1,4 @@
+func main() -> i32 {
+    print(llm.ask("hello from mock"));
+    return 0;
+}

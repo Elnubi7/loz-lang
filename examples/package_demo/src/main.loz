@@ -1,0 +1,6 @@
+import text_utils;
+
+func main() -> i32 {
+    print(text_utils.title());
+    return 0;
+}

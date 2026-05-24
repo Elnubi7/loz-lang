@@ -1,0 +1,11 @@
+agent SupportAgent {
+    model: "mock";
+
+    task answer(question: Text) -> Text {
+        return llm.ask(question);
+    }
+}
+
+func main() -> i32 {
+    return 0;
+}

@@ -71,6 +71,15 @@ impl ExecutionEnvironment {
         )))
     }
 
+    pub fn get_binding(&self, name: &str) -> ExecutionResult<(RuntimeValue, bool)> {
+        self.scopes
+            .iter()
+            .rev()
+            .find_map(|scope| scope.get(name))
+            .map(|binding| (binding.value.clone(), binding.is_mutable))
+            .ok_or_else(|| ExecutionError::new(format!("unknown runtime binding '{}'", name)))
+    }
+
     pub fn get(&self, name: &str) -> ExecutionResult<RuntimeValue> {
         self.scopes
             .iter()

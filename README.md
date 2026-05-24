@@ -1,62 +1,184 @@
-# Loz
+# Loz Programming Language
 
-Loz is a new compiled, statically typed, safe-by-default programming language project.
+Loz is an Egyptian-built, compiled-first agent-native programming language for AI tools, schemas, workflows, and automation.
 
-The repository is currently in Phase 1: Rust workspace setup. The workspace structure exists, but compiler, lexer, parser, semantic analysis, and code generation logic have not been implemented yet.
+## Status
 
-## Why Loz Exists
+Loz is in `v0.1.0-alpha` development.
 
-Loz is intended to sit between highly dynamic languages and highly complex systems languages.
+- Experimental
+- Not production-stable yet
+- Focused on alpha usability, documentation, and native execution coverage
 
-It aims to keep the readability and day-to-day productivity that make JavaScript and Python attractive, while avoiding runtime type surprises, hidden `null` values, and exception-heavy control flow. At the same time, it aims to preserve safety and performance-oriented design without exposing the full complexity that many developers experience when first approaching Rust.
+## Feature Highlights
 
-## Loz v1 Summary
+- Compiled-first hybrid execution
+- Interpreter mode with `loz run`
+- LLVM native build with `loz build`
+- Json + Schema support
+- Tools
+- Python interop
+- LLM runtime with `mock`, `ollama`, and `github`
+- Agents
+- Workflows
+- Async/Await MVP
+- Local package dependencies
+- `loz.toml` + `.env`
+- VS Code extension
 
-- Compiled
-- Statically typed
-- Safe by default
-- Implemented in Rust
-- Planned backend later: LLVM
-- Source file extension: `.loz`
-- CLI name: `loz`
-- Required semicolons
-- `const` for immutable values
-- `mut` for mutable values
-- Primitive types: `Int`, `Float`, `Bool`, `Text`, `Char`, `Void`
-- Planned collections: `Array<T>`, `Map<K, V>`, `Set<T>`
-- No `null`; use `Maybe<T>`
-- No exceptions; use `Result<T, E>`
-- Structs supported
-- References supported with `ref T` and `mut ref T`
-- Raw pointers not supported in v1
+## Quick Start
 
-## Small Example
+```bash
+loz init my-agent
+cd my-agent
+loz check
+loz run
+loz agent list
+LOZ_LLM_PROVIDER=mock loz agent run "hello"
+loz workflow run
+```
+
+## Basic Example
 
 ```loz
-func add(a: Int, b: Int) -> Int {
-    return a + b;
-}
-
-func main() -> Void {
-    const total: Int = add(2, 3);
-    print(total);
+func main() -> i32 {
+    print("Hello from Loz");
+    return 0;
 }
 ```
 
-## Repository Contents
+Run it with:
 
-- `Cargo.toml`: workspace manifest
-- `README.md`: project introduction
-- `docs/`: language and project documentation
-- `crates/loz_cli`: compiler CLI binary crate
-- `crates/loz_lexer`: lexer crate placeholder
-- `crates/loz_ast`: AST crate placeholder
-- `crates/loz_parser`: parser crate placeholder
-- `crates/loz_semantic`: semantic analysis crate placeholder
-- `crates/loz_codegen`: code generation crate placeholder
-- `examples/`: future `.loz` examples
-- `tests/`: future integration and compiler tests
+```bash
+loz check examples/hello.loz
+loz run examples/hello.loz
+```
 
-## Current Status
+## Agent Example
 
-The workspace now builds successfully, and the `loz` CLI entrypoint exists as a minimal placeholder. Language implementation work has not started yet.
+```loz
+agent SupportAgent {
+    model: "mock";
+
+    task answer(question: Text) -> Text {
+        return llm.ask(question);
+    }
+}
+
+func main() -> i32 {
+    return 0;
+}
+```
+
+Run it with:
+
+```bash
+LOZ_LLM_PROVIDER=mock loz agent run examples/agent_support.loz "hello"
+```
+
+## Local Package Example
+
+`examples/package_demo/loz.toml`
+
+```toml
+[project]
+name = "package-demo"
+version = "0.1.0"
+main = "src/main.loz"
+
+[dependencies]
+text_utils = { path = "./packages/text_utils" }
+```
+
+`examples/package_demo/src/main.loz`
+
+```loz
+import text_utils;
+
+func main() -> i32 {
+    print(text_utils.title());
+    return 0;
+}
+```
+
+## Build Example
+
+```bash
+loz llvm-ir examples/hello.loz
+loz build examples/hello.loz
+./output/hello
+```
+
+## CLI Command Overview
+
+- `loz init <project-name>`: create a new Loz project
+- `loz check [source.loz]`: parse, resolve imports, and run semantic checks
+- `loz run [source.loz]`: interpret the program
+- `loz llvm-ir [source.loz]`: print generated LLVM IR
+- `loz build [source.loz]`: build a native executable and LLVM IR file
+- `loz deps`: show local path dependencies for the current project
+- `loz doctor`: inspect toolchain and runtime configuration
+- `loz agent list [source.loz]`: list agents in a program
+- `loz agent run [source.loz] [AgentName] [TaskName] [args...]`: run an agent task
+- `loz workflow list [source.loz]`: list workflows in a program
+- `loz workflow run [source.loz] [WorkflowName]`: run a workflow
+
+## Project Structure
+
+```text
+.
+├── crates/
+│   ├── loz_ast
+│   ├── loz_lexer
+│   ├── loz_parser
+│   ├── loz_semantic
+│   ├── loz_optimizer
+│   ├── loz_codegen
+│   ├── loz_runtime
+│   └── loz_cli
+├── docs/
+├── examples/
+├── runtime/
+└── vscode-loz/
+```
+
+## Roadmap Summary
+
+Completed for alpha:
+
+- Core language
+- Interpreter
+- LLVM/native build
+- Json and Schema
+- Tools
+- Python interop
+- LLM runtime
+- Agents and Workflows
+- Async/Await MVP
+- Optimizer
+- Better CLI diagnostics
+- Local package dependencies
+- VS Code extension
+
+Remaining before broader release hardening:
+
+- Cross-platform hardening
+- GitHub Actions
+- Release packaging
+- VSIX regeneration on a compatible `Node`/`vsce` setup
+
+See [docs/roadmap.md](docs/roadmap.md) and [docs/release-plan.md](docs/release-plan.md).
+
+## Documentation
+
+- [Vision](docs/vision.md)
+- [Language Reference](docs/language-reference.md)
+- [Compiler Architecture](docs/compiler-architecture.md)
+- [CLI](docs/cli.md)
+- [Project Config](docs/project-config.md)
+- [Package System](docs/package-system.md)
+- [VS Code Extension](docs/vscode-extension.md)
+
+## License
+
+License selection is still being finalized for the public alpha release.

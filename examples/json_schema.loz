@@ -1,0 +1,13 @@
+schema User {
+    id: i32,
+    name: Text,
+    active: Bool
+}
+
+func main() -> i32 {
+    const user: Json = json.parse("{\"id\":1,\"name\":\"Ahmed\",\"active\":true}");
+    print(schema.validate("User", user));
+    const checked: Json = schema.require("User", user);
+    print(json.get_text(checked, "name"));
+    return 0;
+}

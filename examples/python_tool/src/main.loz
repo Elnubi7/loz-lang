@@ -1,0 +1,6 @@
+func main() -> i32 {
+    const payload: Json = json.parse("{\"text\":\"hello\"}");
+    const result: Json = python.call("tools.analyze_text", payload);
+    print(json.get_i32(result, "length"));
+    return 0;
+}

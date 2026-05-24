@@ -1,0 +1,7 @@
+[project]
+name = "package-demo"
+version = "0.1.0"
+main = "src/main.loz"
+
+[dependencies]
+text_utils = { path = "./packages/text_utils" }

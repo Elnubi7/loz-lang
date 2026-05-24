@@ -1,0 +1,7 @@
+[project]
+name = "python-tool-demo"
+version = "0.1.0"
+main = "src/main.loz"
+
+[python]
+path = "python3"

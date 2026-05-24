@@ -1,0 +1,106 @@
+# Rust / Cargo
+/target/
+target/
+**/target/
+
+# Loz generated outputs
+/output/
+output/
+**/output/
+*.ll
+*.bc
+*.s
+*.asm
+*.o
+*.obj
+*.exe
+*.dll
+*.dylib
+*.so
+*.a
+*.lib
+*.rlib
+*.rmeta
+
+# Runtime/native build temp artifacts
+*.tmp
+*.temp
+*.bak
+*.pid
+*.lock.tmp
+*.profraw
+*.profdata
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.secret
+secrets/
+.secrets/
+
+# Node / VS Code extension artifacts
+node_modules/
+**/node_modules/
+vscode-loz/node_modules/
+*.vsix
+vscode-loz/*.vsix
+.vscode-test/
+.vscode-test-web/
+
+# Coverage/test artifacts
+coverage/
+.coverage
+.nyc_output/
+junit.xml
+test-results/
+*.lcov
+
+# Release/generated archives
+dist/
+release/
+releases/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp
+*.swo
+
+# VS Code workspace local settings
+.vscode/*
+**/.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# Generated Python bridge test modules
+loz_codegen_python_test_*.py
+loz_runtime_python_test_*.py
+loz_*_python_test_*.py

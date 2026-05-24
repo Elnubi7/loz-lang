@@ -1,0 +1,9 @@
+async task get_name() -> Text {
+    return "Ahmed";
+}
+
+func main() -> i32 {
+    const name: Text = await get_name();
+    print(name);
+    return 0;
+}

@@ -1,0 +1,11 @@
+tool get_data() -> Json {
+    return json.parse("{\"name\":\"Ahmed\"}");
+}
+
+workflow Onboarding {
+    step get_data;
+}
+
+func main() -> i32 {
+    return 0;
+}

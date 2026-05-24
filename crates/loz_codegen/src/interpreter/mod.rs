@@ -5,5 +5,5 @@ mod runtime_value;
 
 pub use environment::ExecutionEnvironment;
 pub use execution_error::{ExecutionError, ExecutionResult};
-pub use interpreter::{Interpreter, execute};
-pub use runtime_value::RuntimeValue;
+pub use interpreter::{Interpreter, WorkflowStepOutcome, execute};
+pub use runtime_value::{MapKey, RuntimeMap, RuntimeSet, RuntimeValue};

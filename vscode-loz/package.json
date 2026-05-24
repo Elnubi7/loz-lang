@@ -1,0 +1,103 @@
+{
+  "name": "vscode-loz",
+  "displayName": "Loz",
+  "description": "Polished VS Code support for the Loz programming language.",
+  "version": "0.1.0",
+  "publisher": "loz-lang",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "loz",
+    "workflow",
+    "agent",
+    "schema",
+    "tool"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onLanguage:loz",
+    "onCommand:loz.checkCurrentFile",
+    "onCommand:loz.runCurrentFile",
+    "onCommand:loz.buildCurrentFile",
+    "onCommand:loz.generateLlvmIr",
+    "onCommand:loz.agentListCurrentFile",
+    "onCommand:loz.workflowListCurrentFile"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "loz",
+        "aliases": [
+          "Loz",
+          "loz"
+        ],
+        "extensions": [
+          ".loz"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "loz",
+        "scopeName": "source.loz",
+        "path": "./syntaxes/loz.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "loz",
+        "path": "./snippets/loz.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "loz.checkCurrentFile",
+        "title": "Loz: Check Current File",
+        "category": "Loz"
+      },
+      {
+        "command": "loz.runCurrentFile",
+        "title": "Loz: Run Current File",
+        "category": "Loz"
+      },
+      {
+        "command": "loz.buildCurrentFile",
+        "title": "Loz: Build Current File",
+        "category": "Loz"
+      },
+      {
+        "command": "loz.generateLlvmIr",
+        "title": "Loz: Generate LLVM IR",
+        "category": "Loz"
+      },
+      {
+        "command": "loz.agentListCurrentFile",
+        "title": "Loz: Agent List",
+        "category": "Loz"
+      },
+      {
+        "command": "loz.workflowListCurrentFile",
+        "title": "Loz: Workflow List",
+        "category": "Loz"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "loz-file-icons",
+        "label": "Loz File Icons",
+        "path": "./icons/loz-icon-theme.json"
+      }
+    ],
+    "configurationDefaults": {
+      "files.associations": {
+        "loz.toml": "toml"
+      }
+    }
+  }
+}

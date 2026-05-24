@@ -1,0 +1,6 @@
+func main() -> i32 {
+    const x: i32 = as<i32>(15 + 10);
+    const y: i32 = as<i32>(x * 2);
+    print(y);
+    return y;
+}

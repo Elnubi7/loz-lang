@@ -1,0 +1,9 @@
+tool get_user(id: i32) -> Json {
+    return json.parse("{\"id\":1,\"name\":\"Ahmed\"}");
+}
+
+func main() -> i32 {
+    const user: Json = get_user(1);
+    print(json.get_text(user, "name"));
+    return 0;
+}

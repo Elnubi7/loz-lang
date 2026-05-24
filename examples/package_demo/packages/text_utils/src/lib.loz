@@ -1,0 +1,5 @@
+module text_utils;
+
+func title() -> Text {
+    return "Hello from package";
+}
