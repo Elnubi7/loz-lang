@@ -61,7 +61,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install llvm --version=18.1.8 -y --no-progress
+          choco install llvm --version=18.1.8 -y --no-progress --allow-downgrade --force
+          choco list llvm --local-only
           $llvm = "C:\Program Files\LLVM"
           $env:PATH = "$llvm\bin;$env:PATH"
           $env:LLVM_SYS_181_PREFIX = $llvm
@@ -141,7 +142,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install llvm --version=18.1.8 -y --no-progress
+          choco install llvm --version=18.1.8 -y --no-progress --allow-downgrade --force
+          choco list llvm --local-only
           $llvm = "C:\Program Files\LLVM"
           $env:PATH = "$llvm\bin;$env:PATH"
           $env:LLVM_SYS_181_PREFIX = $llvm
