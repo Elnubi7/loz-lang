@@ -101,11 +101,16 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v2
 
-      - name: Setup LLVM and Clang (Linux)
+      - name: Install native linking dependencies (Ubuntu)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y llvm clang build-essential libc6-dev gcc g++
+          sudo apt-get install -y build-essential libc6-dev gcc g++ clang llvm
+          clang --version
+          gcc --version
+          ld --version
+          ls -la /usr/lib/x86_64-linux-gnu/libc.so* || true
+          ls -la /lib/x86_64-linux-gnu/libc.so* || true
           echo "LLVM_SYS_181_PREFIX=$(llvm-config --prefix)" >> "$GITHUB_ENV"
 
       - name: Setup LLVM and Clang (macOS)
@@ -114,6 +119,12 @@ jobs:
           brew install llvm
           echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Configure native library path (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          echo "LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
 
       - name: Build Loz
         run: cargo build
@@ -144,7 +155,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           ./target/debug/loz build examples/hello.loz
-          ls -la output || true
+          ls -la output
           chmod +x output/hello || true
           ./output/hello
 
