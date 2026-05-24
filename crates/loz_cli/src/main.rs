@@ -2756,13 +2756,11 @@ fn parse_native_static_libs(output: &str) -> Vec<String> {
 
 fn run_command(program: &str, command: &mut Command) -> Result<(), CliError> {
     let command_line = format_command(command);
-    let output = command
-        .output()
-        .map_err(|error| {
-            CliError::new(format!(
-                "failed to run {program}: {error}\ncommand:\n{command_line}"
-            ))
-        })?;
+    let output = command.output().map_err(|error| {
+        CliError::new(format!(
+            "failed to run {program}: {error}\ncommand:\n{command_line}"
+        ))
+    })?;
 
     if output.status.success() {
         return Ok(());
@@ -3521,8 +3519,16 @@ text_utils = { path = "./packages/text_utils" }
             .map(|arg| arg.to_string_lossy().to_string())
             .collect();
         assert!(linux_args.iter().any(|arg| arg == "-no-pie"));
-        assert!(linux_args.iter().any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu"));
-        assert!(linux_args.iter().any(|arg| arg == "-L/lib/x86_64-linux-gnu"));
+        assert!(
+            linux_args
+                .iter()
+                .any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu")
+        );
+        assert!(
+            linux_args
+                .iter()
+                .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
+        );
 
         let windows = build_clang_link_command(
             BuildPlatform::windows(),
@@ -3536,12 +3542,16 @@ text_utils = { path = "./packages/text_utils" }
             .map(|arg| arg.to_string_lossy().to_string())
             .collect();
         assert!(!windows_args.iter().any(|arg| arg == "-no-pie"));
-        assert!(!windows_args
-            .iter()
-            .any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu"));
-        assert!(!windows_args
-            .iter()
-            .any(|arg| arg == "-L/lib/x86_64-linux-gnu"));
+        assert!(
+            !windows_args
+                .iter()
+                .any(|arg| arg == "-L/usr/lib/x86_64-linux-gnu")
+        );
+        assert!(
+            !windows_args
+                .iter()
+                .any(|arg| arg == "-L/lib/x86_64-linux-gnu")
+        );
         assert_eq!(windows.get_program().to_string_lossy(), "clang.exe");
     }
 

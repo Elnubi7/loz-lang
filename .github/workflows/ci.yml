@@ -120,12 +120,6 @@ jobs:
           echo "LLVM_SYS_181_PREFIX=$(brew --prefix llvm)" >> "$GITHUB_ENV"
           echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
 
-      - name: Configure native library path (Ubuntu)
-        if: runner.os == 'Linux'
-        run: |
-          echo "LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
-
       - name: Build Loz
         run: cargo build
 
@@ -150,6 +144,34 @@ jobs:
           ../../target/debug/loz check
           ../../target/debug/loz run
           cd ../..
+
+      - name: Configure Ubuntu native library path
+        if: runner.os == 'Linux'
+        run: |
+          echo "LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib/x86_64-linux-gnu" >> $GITHUB_ENV
+
+      - name: Verify Ubuntu native libc toolchain
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --reinstall -y build-essential libc6-dev libc6-dev-amd64 gcc g++ clang llvm binutils
+          echo "=== clang ==="
+          clang --version
+          echo "=== gcc ==="
+          gcc --version
+          echo "=== ld ==="
+          ld --version
+          echo "=== gcc search dirs ==="
+          gcc -print-search-dirs
+          echo "=== clang search dirs ==="
+          clang -print-search-dirs || true
+          echo "=== libc candidates ==="
+          find /usr/lib /lib -name 'libc.so*' -o -name 'libc.a' | sort || true
+          echo "=== expected paths ==="
+          ls -la /usr/lib/x86_64-linux-gnu/libc.so* || true
+          ls -la /lib/x86_64-linux-gnu/libc.so* || true
+          test -e /usr/lib/x86_64-linux-gnu/libc.so || test -e /lib/x86_64-linux-gnu/libc.so || (echo "libc.so development linker file is missing" && exit 1)
 
       - name: Test native build (Ubuntu)
         if: runner.os == 'Linux'
