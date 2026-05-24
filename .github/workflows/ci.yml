@@ -155,7 +155,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install --reinstall -y build-essential libc6-dev libc6-dev-amd64 gcc g++ clang llvm binutils
+          sudo apt-get install --reinstall -y build-essential libc6-dev gcc g++ clang llvm binutils
           echo "=== clang ==="
           clang --version
           echo "=== gcc ==="
