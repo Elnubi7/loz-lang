@@ -1,0 +1,4 @@
+func main() -> i32 {
+    print(10 + 20);
+    return 0;
+}
