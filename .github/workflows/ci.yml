@@ -169,11 +169,7 @@ jobs:
       - name: Test native build (Ubuntu)
         if: runner.os == 'Linux'
         run: |
-          ./target/debug/loz --version
-          ./target/debug/loz build examples/hello.loz
-          ls -la output
-          chmod +x output/hello || true
-          ./output/hello
+          ./scripts/test_native_examples.sh
 
   vscode-extension-check:
     name: VS Code Extension Check
