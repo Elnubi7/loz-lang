@@ -60,21 +60,6 @@
             }
           },
           "end": "$"
-        },
-        {
-          "name": "comment.block.loz",
-          "begin": "/\\*",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.begin.loz"
-            }
-          },
-          "end": "\\*/",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.comment.end.loz"
-            }
-          }
         }
       ]
     },
@@ -89,27 +74,6 @@
             }
           },
           "end": "\"",
-          "endCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.end.loz"
-            }
-          },
-          "patterns": [
-            {
-              "name": "constant.character.escape.loz",
-              "match": "\\\\."
-            }
-          ]
-        },
-        {
-          "name": "string.quoted.single.loz",
-          "begin": "'",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.begin.loz"
-            }
-          },
-          "end": "'",
           "endCaptures": {
             "0": {
               "name": "punctuation.definition.string.end.loz"
@@ -194,7 +158,7 @@
     "module-declarations": {
       "patterns": [
         {
-          "match": "\\b(module|import|using)\\s+([A-Za-z_][A-Za-z0-9_\\.:]*)",
+          "match": "\\b(module|import)\\s+([A-Za-z_][A-Za-z0-9_\\.:]*)",
           "captures": {
             "1": {
               "name": "keyword.control.import.loz"
@@ -233,7 +197,7 @@
       "patterns": [
         {
           "name": "entity.name.function.loz",
-          "match": "\\b(?!(?:if|else|while|for|return|await|func|tool|task|agent|workflow|schema|struct|impl|module|import|using)\\b)(?:[A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*\\()"
+          "match": "\\b(?!(?:if|else|while|for|return|await|func|tool|task|agent|workflow|schema|struct|impl|module|import|async|step|break|continue|mut|const)\\b)(?:[A-Za-z_][A-Za-z0-9_]*)\\b(?=\\s*\\()"
         }
       ]
     },
@@ -249,7 +213,7 @@
       "patterns": [
         {
           "name": "keyword.control.loz",
-          "match": "\\b(?:module|import|using|extern|global|const|mut|let|var|func|return|if|else|while|for|in|break|continue|struct|impl|schema|tool|agent|task|workflow|step|async|await)\\b"
+          "match": "\\b(?:module|import|const|mut|func|return|if|else|while|for|in|break|continue|struct|impl|schema|tool|agent|task|workflow|step|async|await)\\b"
         }
       ]
     },
@@ -258,10 +222,6 @@
         {
           "name": "constant.language.boolean.loz",
           "match": "\\b(?:true|false)\\b"
-        },
-        {
-          "name": "constant.language.null.loz",
-          "match": "\\bnull\\b"
         }
       ]
     },
