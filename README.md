@@ -158,6 +158,7 @@ flowchart LR
 
 | Document | Purpose |
 | --- | --- |
+| [RELEASE_NOTES.md](RELEASE_NOTES.md) | Draft release notes for `v0.1.0-alpha` |
 | [docs/getting-started.md](docs/getting-started.md) | First-time setup, build, run, native output |
 | [docs/language-syntax.md](docs/language-syntax.md) | Beginner-friendly syntax guide based on real examples |
 | [docs/cli.md](docs/cli.md) | Actual CLI commands and usage patterns |
@@ -246,4 +247,4 @@ If you are contributing to Loz:
 
 ## 📄 License
 
-License is not specified yet for the public Alpha release.
+Loz is released under the [MIT License](LICENSE).

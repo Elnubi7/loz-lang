@@ -2,8 +2,18 @@
   "name": "vscode-loz",
   "displayName": "Loz",
   "description": "Polished VS Code support for the Loz programming language.",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha",
   "publisher": "loz-lang",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Elnubi7/loz-lang.git"
+  },
+  "homepage": "https://github.com/Elnubi7/loz-lang#readme",
+  "bugs": {
+    "url": "https://github.com/Elnubi7/loz-lang/issues"
+  },
+  "icon": "assets/icon.png",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -18,6 +28,9 @@
     "schema",
     "tool"
   ],
+  "vsce": {
+    "dependencies": false
+  },
   "main": "./src/extension.js",
   "activationEvents": [
     "onLanguage:loz",

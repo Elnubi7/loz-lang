@@ -42,4 +42,4 @@ cd vscode-loz
 vsce package
 ```
 
-At the moment, VSIX regeneration may require a compatible `Node` and `vsce` setup.
+At the moment, VSIX regeneration may require a compatible `Node` and `vsce` setup. This extension does not ship runtime npm dependencies, so packaging is configured to stay in the no-dependency path by default.

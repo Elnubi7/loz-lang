@@ -1,0 +1,17 @@
+.vscode/**
+node_modules/**
+*.vsix
+.git/**
+.gitignore
+package-lock.json
+test/**
+tests/**
+src/**/*.map
+!package.json
+!README.md
+!language-configuration.json
+!src/**
+!syntaxes/**
+!snippets/**
+!icons/**
+!assets/**

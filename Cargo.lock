@@ -479,11 +479,11 @@ checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
 name = "loz_ast"
-version = "0.1.0"
+version = "0.1.0-alpha"
 
 [[package]]
 name = "loz_cli"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "dotenvy",
  "loz_ast",
@@ -500,7 +500,7 @@ dependencies = [
 
 [[package]]
 name = "loz_codegen"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "inkwell",
  "loz_ast",
@@ -513,14 +513,14 @@ dependencies = [
 
 [[package]]
 name = "loz_lexer"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "loz_ast",
 ]
 
 [[package]]
 name = "loz_optimizer"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "loz_ast",
  "loz_codegen",
@@ -531,7 +531,7 @@ dependencies = [
 
 [[package]]
 name = "loz_parser"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "loz_ast",
  "loz_lexer",
@@ -539,7 +539,7 @@ dependencies = [
 
 [[package]]
 name = "loz_runtime"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "reqwest",
  "serde_json",
@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "loz_semantic"
-version = "0.1.0"
+version = "0.1.0-alpha"
 dependencies = [
  "loz_ast",
  "loz_lexer",
