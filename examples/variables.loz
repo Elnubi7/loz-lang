@@ -1,0 +1,6 @@
+func main() -> i32 {
+    mut value: i32 = 40;
+    value = value + 2;
+    print(value);
+    return 0;
+}

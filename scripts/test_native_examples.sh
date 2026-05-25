@@ -14,10 +14,19 @@ assert_stdout() {
 
 cargo build --workspace
 
-./target/debug/loz build examples/hello.loz
-hello_output="$(./output/hello)"
-assert_stdout "Hello from Loz" "$hello_output" "examples/hello.loz"
+test_example() {
+    local name="$1"
+    local expected="$2"
 
-./target/debug/loz build examples/arithmetic.loz
-arithmetic_output="$(./output/arithmetic)"
-assert_stdout "30" "$arithmetic_output" "examples/arithmetic.loz"
+    ./target/debug/loz build "examples/${name}.loz"
+    local actual
+    actual="$(./output/${name})"
+    assert_stdout "$expected" "$actual" "examples/${name}.loz"
+}
+
+test_example "hello" "Hello from Loz"
+test_example "arithmetic" "30"
+test_example "variables" "42"
+test_example "if_else" "yes"
+test_example "while_loop" "15"
+test_example "functions" "25"

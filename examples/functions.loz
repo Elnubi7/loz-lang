@@ -1,0 +1,8 @@
+func square_plus_one(x: i32) -> i32 {
+    return x * x;
+}
+
+func main() -> i32 {
+    print(square_plus_one(5));
+    return 0;
+}

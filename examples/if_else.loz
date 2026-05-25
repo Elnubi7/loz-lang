@@ -1,0 +1,8 @@
+func main() -> i32 {
+    if 10 > 5 {
+        print("yes");
+    } else {
+        print("no");
+    }
+    return 0;
+}
